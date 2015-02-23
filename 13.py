@@ -62,7 +62,7 @@ def create_admin_profile():
     profile = profile_for(b'a' * 10 + admin + b'@yahoo.com')
     admin_encryption = encrypt_profile(profile)[16:32]
     encrypted = encrypted[:-16] + admin_encryption
-    print(decrypt_profile(encrypted))
+    return decrypt_profile(encrypted)
 
-create_admin_profile()
+print(create_admin_profile())
 
