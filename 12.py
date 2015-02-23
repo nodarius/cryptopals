@@ -31,7 +31,7 @@ def oracle(plain):
     
 def detect_blocksize():
     length = len(oracle(b'a'))
-    for i in range(0, 255):
+    for i in range(0, 256):
         enc = oracle(b'a' * i)
         diff = len(enc) - length
         if (diff > 0):
@@ -62,7 +62,7 @@ def decrypt_block(index, prev_plain, blocksize):
     end = start + blocksize
     for i in range(0, blocksize):
         enc = oracle(food)
-        for i in range(0, 255):
+        for i in range(0, 256):
             test_block = prev_plain + chr(i).encode('latin')
             test_enc = oracle(test_block)
             if test_enc[:blocksize] == enc[start:end]:
