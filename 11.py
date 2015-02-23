@@ -53,7 +53,7 @@ def detect_algorithm():
     plain = b'a' * 1280
     encrypted, algorithm = magic_encrypt(plain)
     res = "cbc"
-    for i in range(0, int((len(encrypted) - 32) / 16), 16):
+    for i in range(0, (len(encrypted) - 32), 16):
         if encrypted[i:i + 16] == encrypted[i + 16:i + 32]:
             res = 'ecb'
             break
