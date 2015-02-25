@@ -72,6 +72,33 @@ def decrypt_block(index, prev_plain, blocksize):
                 break
     return decrypted
 
+def test(blocksize):
+    food = b'a' * (blocksize - 1)
+    decrypted = b''
+    size = 0
+    while True:
+        enc = oracle(food)
+        start = len(decrypted) - len(decrypted) % blocksize
+        end = start + blocksize
+        for i in range(0, 256):
+            test_block = food + decrypted[-blocksize + 1:] \
+                         + chr(i).encode('latin')
+            test_enc = oracle(test_block)
+            if i == 0:
+               print("test block is %s" % test_block)            
+            if test_enc[:blocksize] == enc[start:end]:
+                decrypted += chr(i).encode()
+                food = b'a' * (blocksize - len(decrypted) % blocksize - 1)
+                print(chr(i))
+                break
+
+        size += 1
+
+
+
+    
+print(test(detect_blocksize()))
+
 def decrypt():
     blocksize = detect_blocksize()
     algorithm = detect_algorithm(blocksize)
