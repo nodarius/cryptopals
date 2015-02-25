@@ -50,28 +50,6 @@ def detect_algorithm(blocksize):
     return res
 
 
-def decrypt_block(index, prev_plain, blocksize):
-    food = b'a' * (blocksize - 1)
-    if prev_plain == None:
-        prev_plain = food
-    else:
-        prev_plain = prev_plain[1:]
-
-    decrypted = b''
-    start = index * blocksize
-    end = start + blocksize
-    for i in range(0, blocksize):
-        enc = oracle(food)
-        for i in range(0, 256):
-            test_block = prev_plain + chr(i).encode('latin')
-            test_enc = oracle(test_block)
-            if test_enc[:blocksize] == enc[start:end]:
-                decrypted += chr(i).encode()
-                food = food[1:]
-                prev_plain = prev_plain[1:] + chr(i).encode()
-                break
-    return decrypted
-
 def decrypt():
     blocksize = detect_blocksize()
     algorithm = detect_algorithm(blocksize)
