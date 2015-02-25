@@ -50,28 +50,42 @@ def detect_algorithm(blocksize):
             break
     return res
 
+import math
 
-def decrypt_block(index, prev_plain, blocksize):
-    food = b'a' * (blocksize - 1)
-    if prev_plain == None:
-        prev_plain = food
-    else:
-        prev_plain = prev_plain[1:]
-
+def decrypt_with_known_randsize(randsize, blocksize):
+    extra_foodlen = math.ceil(randsize / blocksize) * blocksize - randsize
+    extra_len = math.ceil(randsize / blocksize) * blocksize
+    foodlen = extra_foodlen + blocksize - 1
+    food = b'a' * foodlen
     decrypted = b''
-    start = index * blocksize
-    end = start + blocksize
-    for i in range(0, blocksize):
+    size = 0
+    while True:
         enc = oracle(food)
+        start = len(decrypted) - len(decrypted) % blocksize + extra_len
+        end = start + blocksize
+        if size == len(enc):
+            return unpad(decrypted)
         for i in range(0, 256):
-            test_block = prev_plain + chr(i).encode('latin')
+            test_block = food + decrypted \
+                         + chr(i).encode('latin')
             test_enc = oracle(test_block)
-            if test_enc[:blocksize] == enc[start:end]:
+            if test_enc[start:end] == enc[start:end]:
                 decrypted += chr(i).encode()
-                food = food[1:]
-                prev_plain = prev_plain[1:] + chr(i).encode()
+                food = b'a' * (blocksize - len(decrypted) % blocksize - 1 + \
+                               extra_foodlen)
                 break
-    return decrypted
+        size += 1
+
+def detect_minimum_rand_size(blocksize):
+    a = oracle(b'a')
+    b = oracle(b'b')
+    size = 0
+    for i in range(0, len(a)):
+        if a[i] != b[i]:
+            break
+        size += 1
+    return size - size % blocksize
+    
 
 def decrypt():
     blocksize = detect_blocksize()
@@ -79,19 +93,20 @@ def decrypt():
     if algorithm != 'ecb':
         return
 
-    res = b''
-    block = None
-    i = 0
+    size = detect_minimum_rand_size(blocksize)
     while True:
-        block = decrypt_block(i, block, blocksize)
-        i += 1
-        res += block
-        if not block:
-            break
-
-    return unpad(res)
+        print('assuming random length is: %d... ' % size, end = '')
+        res = decrypt_with_known_randsize(size, blocksize)
+        if res:
+            print('Success.')
+            return res
+        print('Failed.')
+        size += 1
 
 
 
 print(decrypt())
+
+
+
 
