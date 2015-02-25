@@ -1,4 +1,4 @@
 # cryptopals
 my solutions to cryptopal's challenges (http://cryptopals.com/)
 
-You should definitely write your own solutions too.
+You should definitely have your own solutions too.
