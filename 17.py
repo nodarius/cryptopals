@@ -2,7 +2,6 @@
 
 from Crypto.Cipher import AES
 import random
-import math
 import base64
 
 def pad(text, blocksize):
@@ -16,11 +15,11 @@ class IncorrectPadding(Exception):
 
 def unpad_exc(string):
     size = string[-1]
-    if size == 0 or size >= len(string):
+    if size == 0 or size > len(string):
         raise IncorrectPadding
 
     for i in range(1, size + 1):
-        if string[-size] != size:
+        if string[-i] != size:
             raise IncorrectPadding
     return string[:-size]
 
@@ -89,33 +88,41 @@ def has_correct_padding(enc, iv):
 
 def decrypt_block(block, iv):
     res = b''
-    original_iv = iv[:]
+    original_iv = iv
 
     for ind in range(1, 17):
+        lst_iv = list(iv)
         for ch in range(0, 256):
-            iv = iv[:16 - ind] + (chr(ch)).encode('latin') + iv[16 - ind + 1:]
+            lst_iv[-ind] = ch
+            iv = ''.join([chr(a) for a in lst_iv]).encode('latin')
             if has_correct_padding(block, iv):
+                if ind == 1:
+                    lst_iv[-2] = 55 # any random number, more then 16
+                    test_iv = ''.join([chr(a) for a in lst_iv]).encode('latin')
+                    if not has_correct_padding(block, test_iv):
+                        continue
+
                 x = ch ^ ind
-                res = chr(original_iv[-ind] ^ x).encode() + res
-                print(str(ind) + ' ' + chr(ch) + ' ' + chr(original_iv[-ind] ^ x))
+                res = chr(original_iv[-ind] ^ x).encode('latin') + res
                 for i in range(1, ind + 1):
                     lst_iv = list(iv)
                     lst_iv[-i] = lst_iv[-i] ^ ind ^ (ind + 1)
                     iv = b''.join([chr(a).encode('latin') for a in lst_iv])
                 break
-    print(res)
-    return b'a' * 16
+            if ch == 255:
+                print('wtf ' + str(ind))
+    return res
 
 def decrypt():
     enc, iv = encrypt()
     decrypted = b''
     prev = iv
-    return decrypt_block(enc[0:16], iv)
 
     for i in range(0, len(enc), 16):
         block = enc[i:i + 16]
-        prev = decrypt_block(block, prev)
-        decrypted += prev
-    return decrypted
+        decrypted += decrypt_block(block, prev)
+        prev = block
+
+    return unpad_exc(decrypted)
 
 print(decrypt())
