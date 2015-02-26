@@ -2,6 +2,7 @@
 
 from Crypto.Cipher import AES
 import random
+import math
 
 def pad(text, blocksize):
     n = blocksize - len(text) % blocksize
@@ -14,11 +15,11 @@ class IncorrectPadding(Exception):
 
 def unpad_exc(string):
     size = string[-1]
-    if size == 0 or size >= len(string):
+    if size == 0 or size > len(string):
         raise IncorrectPadding
 
     for i in range(1, size + 1):
-        if string[-size] != size:
+        if string[-i] != size:
             raise IncorrectPadding
     return string[:-size]
 
@@ -83,8 +84,6 @@ def second(encrypted):
     if plain.find(b';admin=true;') != -1:
         return True
     return False
-
-import math
 
 def become_admin():
     foodlen = math.ceil(len(prepend) / 16) * 16 - len(prepend)
