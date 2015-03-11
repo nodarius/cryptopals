@@ -7,10 +7,6 @@
 MT = [0 for a in range(624)]
 index = 0
 
-import struct
-def bits(i):
-    return struct.pack('L', i)
-
 def num_to_bin(num):
     return "{0:b}".format(num)
 
