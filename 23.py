@@ -46,28 +46,48 @@ import time
 def timestamp():
     return int(time.time())
 
+def invert_left(y, nshift, num):
+    print(num_to_bin(y))
+    pass
+
+def test_left_invert():
+#    print("Testing left invert.. ", end='', flush=True)
+    y = random.randint(0, 10000000000000)
+    y1 = y ^ ((y << 7) & 2636928640)
+    print(num_to_bin(y))
+    print(num_to_bin(y << 7))
+    print(num_to_bin((y << 7) & 2636928640))
+    print(num_to_bin(y1))
+    exit()
+    y2 = invert_left(y1, 7, 2636928640)
+    if y != y2:
+        print("Error")
+    else:
+        print("Success")
+
+
 def invert_right(y, nshift):
     binary = num_to_bin(y)
     length = len(binary)
-    origin = num_to_bin(y >> (length - nshift))
+    nshift = length - nshift if length >= nshift else 0
+    origin = num_to_bin(y >> (nshift))
     origin = str(origin).encode('latin')
     i = 0
     pref_len = len(origin)
-    print(origin)
     while len(origin) < length:
         origin = origin + chr(origin[i] ^ int(binary[pref_len + i])).encode()
         i += 1
-        
 
     return int(origin.decode(), 2)
 
 
 
+
 def test_right_invert():
-    y = random.randint(0, 10000000000000)
+    print("Testing right invert.. ", end='', flush=True)
+    y = random.randint(0, 10)
     y1 = y ^ (y >> 18)
     y2 = invert_right(y1, 18)
-    print(y1)
     if y != y2:
         print("Error")
     else:
@@ -76,6 +96,7 @@ def test_right_invert():
 
 def untemper(y):
     test_right_invert()
+    test_left_invert()
     pass
 
 
