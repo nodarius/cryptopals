@@ -53,21 +53,10 @@ def invert_left(y, nshift, num):
     pref = y[:-len(num)].encode()
     for i in range(1, len(num) + 1):
         nxt = int(num[-i]) & int(suf[-i + nshift]) if i > nshift else 0
-        nxt = nxt ^ int(y[-i]) if i <= len(y) else 0
+        nxt = nxt ^ int(y[-i]) if i <= len(y) else nxt ^ 0
         suf = str(nxt).encode() + suf
     res = pref + suf
     return int(res.decode(), 2)
-
-
-def test_left_invert():
-    print("Testing left invert.. ", end='', flush=True)
-    y = random.randint(0, 10000000000000)
-    y1 = y ^ ((y << 7) & 2636928640)
-    y2 = invert_left(y1, 7, 2636928640)
-    if y != y2:
-        print("Error")
-    else:
-        print("Success")
 
 
 def invert_right(y, nshift):
@@ -85,7 +74,17 @@ def invert_right(y, nshift):
     return int(origin.decode(), 2)
 
 
-
+def test_left_invert():
+    print("Testing left invert.. ", end='', flush=True)
+    y = random.randint(0, 10000000000000)
+    y1 = y ^ ((y << 7) & 2636928640)
+    
+    y2 = invert_left(y1, 7, 2636928640)
+    if y != y2:
+        print("Error")
+        exit()
+    else:
+        print("Success")
 
 def test_right_invert():
     print("Testing right invert.. ", end='', flush=True)
@@ -94,17 +93,45 @@ def test_right_invert():
     y2 = invert_right(y1, 18)
     if y != y2:
         print("Error")
+        exit()
     else:
         print("Success")
 
 
 def untemper(y):
-    test_right_invert()
-    test_left_invert()
-    pass
+    y = invert_right(y, 18)
+    y = invert_left(y, 15, 4022730752)
+    y = invert_left(y, 7, 2636928640)
+    y = invert_right(y, 1)
+    return y
 
 
 def main():
+    test_right_invert()
+    test_left_invert()
+
+    print("Cloning random number generator.. ", end='', flush=True)
+
     initialize_generator(timestamp())
-    untemper(extract_number())
+    cloned_mt = [0 for a in range(0, 624)]
+    rands = [0 for a in range(0, 624)]
+    for i in range(0, 624):
+        rand = extract_number()
+        rands[i] = rand
+        y = untemper(rand)
+        cloned_mt[i] = y
+
+    success = True
+    for i in range(0, 624):
+        if MT[i] != cloned_mt[i]:
+            success = False
+
+    if success:
+        print("Successfully cloned!")
+    else:
+        print("Error")
+
+
+        
+
 main()
