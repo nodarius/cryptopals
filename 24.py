@@ -77,7 +77,8 @@ def encrypt_with_random_prefix(plain):
 def recover_the_key(enc, known_sufix):
     pref_len = len(enc) - len(known_sufix)
     pref = b'a' * pref_len
-    for i in range(2 ** 15, 2 ** 16):
+    print("Iterating from %d to %d" % (2 ** 15, 2 ** 16 + 1))
+    for i in range(2 ** 15, 2 ** 16 + 1):
         seed = i
         if i % 1000 == 0:
             print(i)
@@ -85,14 +86,26 @@ def recover_the_key(enc, known_sufix):
         if dec[-len(known_sufix):] == known_sufix:
             print("seed is: %d" % i)
             return i
-
-
+    print("Couldn't recover key")
+    return None
 
 def main():
-    seed = truncate(timestamp(), 16)
     plain = b'A' * 14
     enc = encrypt_with_random_prefix(plain)
-    recover_the_key(enc, plain)
-
+    recovered_seed = recover_the_key(enc, plain)
+    if recovered_seed is not None:
+        print("Recovered seed: %d " % recovered_seed)
+    
 
 main()
+
+"""
+remaining:
+
+>>> Use the same idea to generate a random "password reset token" using MT19937 seeded from the current time.
+>>> Write a function to check if any given password token is actually the product of an MT19937 PRNG seeded with the current time.
+
+^^^
+Couldn't understand what you are asking exactly... should thinkg again after some time
+
+"""
