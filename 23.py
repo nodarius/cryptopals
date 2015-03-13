@@ -47,18 +47,22 @@ def timestamp():
     return int(time.time())
 
 def invert_left(y, nshift, num):
-    print(num_to_bin(y))
-    pass
+    y = num_to_bin(y)
+    num = num_to_bin(num)
+    suf = b''
+    pref = y[:-len(num)].encode()
+    for i in range(1, len(num) + 1):
+        nxt = int(num[-i]) & int(suf[-i + nshift]) if i > nshift else 0
+        nxt = nxt ^ int(y[-i]) if i <= len(y) else 0
+        suf = str(nxt).encode() + suf
+    res = pref + suf
+    return int(res.decode(), 2)
+
 
 def test_left_invert():
-#    print("Testing left invert.. ", end='', flush=True)
+    print("Testing left invert.. ", end='', flush=True)
     y = random.randint(0, 10000000000000)
     y1 = y ^ ((y << 7) & 2636928640)
-    print(num_to_bin(y))
-    print(num_to_bin(y << 7))
-    print(num_to_bin((y << 7) & 2636928640))
-    print(num_to_bin(y1))
-    exit()
     y2 = invert_left(y1, 7, 2636928640)
     if y != y2:
         print("Error")
@@ -85,7 +89,7 @@ def invert_right(y, nshift):
 
 def test_right_invert():
     print("Testing right invert.. ", end='', flush=True)
-    y = random.randint(0, 10)
+    y = random.randint(0, 10000000000000)
     y1 = y ^ (y >> 18)
     y2 = invert_right(y1, 18)
     if y != y2:
