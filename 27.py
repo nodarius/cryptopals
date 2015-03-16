@@ -2,7 +2,6 @@
 
 from Crypto.Cipher import AES
 import random
-import math
 
 def pad(text, blocksize):
     n = blocksize - len(text) % blocksize
@@ -11,9 +10,6 @@ def pad(text, blocksize):
     return text
 
 class IncorrectPadding(Exception):
-    pass
-
-class NotAscii(Exception):
     pass
 
 def unpad_exc(string):
@@ -69,10 +65,7 @@ def decrypt_cbc(key, string, iv):
         plain = xor_encrypt(decrypted_block, prev)
         prev = block
         res += plain
-    res = unpad_exc(res)
-    if not is_ascii(res):
-        raise NotAscii
-    return res
+    return unpad_exc(res)
 
 
 def random_bytes(n):
@@ -84,7 +77,6 @@ prepend = b'comment1=cooking%20MCs;userdata='
 append = b';comment2=%20like%20a%20pound%20of%20bacon'
 key = random_bytes(16)
 iv = key
-iv = random_bytes(16)
 
 def first(user_str):
     if user_str.find(b';') != -1 or user_str.find(b'=') != -1:
@@ -94,41 +86,24 @@ def first(user_str):
     return encrypt_cbc(key, plain, iv)
 
 def second(encrypted):
-    try:
-        plain = decrypt_cbc(key, encrypted, iv)
-    except NotAscii:
+    plain = b''
+    plain = decrypt_cbc(key, encrypted, iv)
+    if is_ascii(plain):
         return None
-    return plain
+    else:
+        return plain
+
 
 
 def main():
     blocksize = 16
-#    block1 = b'a' * blocksize
-#    block2 = b'\0' * blocksize
-#    block3 = block1[:]
     enc = first(b'a' * blocksize * 3)
-    print(enc)
-    food = enc[:blocksize] + b'\0' * blocksize + enc[blocksize:]
+    food = enc[:blocksize] + b'\0' * blocksize + enc[:blocksize] + enc[blocksize:]
     dec = second(food)
-    print(dec)
+    extracted_key = xor_encrypt(dec[:blocksize], dec[2 * blocksize:3 * blocksize])
+    if extracted_key == key:
+        print('Done! you have extracted key successfully')
+    else:
+        print("You couldn't extract the key..")
 
 main()
-
-
-
-def become_admin():
-    foodlen = math.ceil(len(prepend) / 16) * 16 - len(prepend)
-    food = b'a' * foodlen
-    user_data = food + b'a' * 16
-    enc = first(user_data)
-
-    change = xor_encrypt(b';admin=true;' + b'0000', append[:16])
-    change = xor_encrypt(change, enc[len(prepend) + foodlen:len(prepend) + foodlen + 16])
-    enc = enc[:len(prepend) + foodlen] + change + \
-          enc[len(prepend) + foodlen + 16:]
-    if(second(enc)):
-        print("Hello Admin")
-    else:
-        print("You are not admin... get lost")
-
-#become_admin()
