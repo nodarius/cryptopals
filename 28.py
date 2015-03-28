@@ -67,7 +67,10 @@ def test():
     else:
         print("Success")
 
-
+def sha1_auth(message):
+    secret = b'nodarius'
+    return sha1(secret + message)
 
 if __name__ == '__main__':
     test()
+    print(sha1_auth(b"Eminem"))
