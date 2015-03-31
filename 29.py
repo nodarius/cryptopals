@@ -17,7 +17,6 @@ def md_padding_with_mlen(length):
     return md_padding(b'a' * length)
 
 def sha1_modified(message, h0, h1, h2, h3, h4, prefix_length):
-#    message += b'a' * prefix_length
     message += md_padding_with_mlen(len(message) + prefix_length)
     for i in range(0, len(message), 64):
         w = [0] * 80
@@ -109,28 +108,8 @@ def sha1(message):
 
 
 def sha1_auth(message):
-    return sha1(message)
     secret = b'nodarius123'
     return sha1(secret + message)
-
-
-def test():
-    return
-    h0 = 0x67452301
-    h1 = 0xEFCDAB89
-    h2 = 0x98BADCFE
-    h3 = 0x10325476
-    h4 = 0xC3D2E1F0
-    a = sha1_modified(b'aaaaaaaas', h0, h1, h2, h3, h4, 0)
-    b = sha1(b'aaaaaaaas')
-    if a == b:
-        print("success")
-    return
-    a = sha1(b'aaaaaaaa')
-    b = sha1(b'bbbbbbbb')
-    print(a)
-    print(b)    
-    print(sha1(a + b'bbbbbbbb'))
 
 
 def main():
@@ -142,18 +121,19 @@ def main():
     d = int(sha1hash[24:32], 16)
     e = int(sha1hash[32:40], 16)
 
-    padding = md_padding_with_mlen(len(original))
-    newmessage = original + padding + b';admin=true'
-    hsh = sha1_modified(b';admin=true', a, b, c, d, e,\
-                        len(original) + len(padding))
-    if sha1_auth(newmessage) == hsh:
-        print("success")
+    for sec_len in range(0, 64):
+        padding = md_padding_with_mlen(len(original) + sec_len)
+        newmessage = original + padding + b';admin=true'
+        hsh = sha1_modified(b';admin=true', a, b, c, d, e,\
+                            len(original) + len(padding) + sec_len)
+        if sha1_auth(newmessage) == hsh:
+            print("success")
+            break
     else:
-        print('suck my dick, bitch')    
+        print('sucker')
 
 
 if __name__ == '__main__':
-    test()
     main()
 
 
