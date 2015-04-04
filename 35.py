@@ -103,6 +103,21 @@ def run_mitm_1():
     print("Decripted: %s" % dec)
 
 def run_mitm_2():
+    print("Running MITM with g=p..", end=' ')
+    a, b = A(), B()
+    b.set_p(a.get_p())
+    b.set_g(a.get_p())
+#    b.set_g(a.get_g())
+    b.set_A(a.get_A())
+    a.set_B(b.get_B())
+    
+    msg_a = a.get_message()
+    key = int_to_hash(0)
+    iv = msg_a[-16:]
+    msg_a = msg_a[:-16]
+    cipher = AES.new(key, AES.MODE_CBC, iv)
+    dec = unpad(cipher.decrypt(msg_a))
+    print("Decripted: %s" % dec)
 
     pass
 def run_mitm_3():
