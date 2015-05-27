@@ -43,49 +43,51 @@ class Network():
     
 
 class Client():
-    def __init__(self):
-        pass
+    def __init__(self, N, g, k, I, P):
+        self.N, self.g, self.k, self.I, self.P = N, g, k, I, P
+        self.a = random.randint(0, self.N) % self.N
+        self.A = pow(self.g, self.a, self.N)
+
+    def receive_B(self, B):
+        self.B = B
+        uH = sha256((str(self.A) + str(self.B)).encode()).digest()
+        u = hash_to_int(uH)
+        self.u = u
+
+    def receive_salt(self, salt):
+        self.salt = salt
+        xH = sha256((str(self.salt) + str(self.P)).encode()).digest()
+        self.x = hash_to_int(xH)
+        self.S = pow((self.B - self.k * pow(self.g, self.x, self.N)), self.a + self.u * self.x, self.N)
+        self.K = sha256(str(self.S).encode()).digest()
 
 class Server():
-    def __init__(self):
-        pass
+    def __init__(self, N, g, k, I, P):
+        self.N, self.g, self.k, self.I, self.P = N, g, k, I, P
+        self.salt = random_integer() 
+        xH = sha256((str(self.salt) + self.P).encode()).digest()
+        x = hash_to_int(xH)
+        self.v = pow(self.g, x, self.N)
+        self.b = random.randint(0, self.N) % self.N
+        self.B = self.k * self.v + pow(self.g, self.b, self.N)
+
+    def receive_A(self, A):
+        self.A = A
+        uH = sha256((str(self.A) + str(self.B)).encode()).digest()
+        u = hash_to_int(uH)
+        self.u = u
+        self.S = pow(self.A * pow(self.v, self.u, self.N), self.b, self.N)
+        self.K = sha256(str(self.S).encode()).digest()
+        
 
 def run():
-    client, server = Client(), Server()
+    N = 0xffffffffffffffffc90fdaa22168c234c4c6628b80dc1cd129024e088a67cc74020bbea63b139b22514a08798e3404ddef9519b3cd3a431b302b0a6df25f14374fe1356d6d51c245e485b576625e7ec6f44c42e9a637ed6b0bff5cb6f406b7edee386bfb5a899fa5ae9f24117c4b1fe649286651ece45b3dc2007cb8a163bf0598da48361c55d39a69163fa8fd24cf5f83655d23dca3ad961c62f356208552bb9ed529077096966d670c354e4abc9804f1746c08ca237327ffffffffffffffff
+    g, k, I, P = 2, 3, 'ndarj11@freeuni.edu.ge', 'dzkonline.net'
+    client, server = Client(N, g, k, I, P), Server(N, g, k, I, P)
 
-    client.N = 0xffffffffffffffffc90fdaa22168c234c4c6628b80dc1cd129024e088a67cc74020bbea63b139b22514a08798e3404ddef9519b3cd3a431b302b0a6df25f14374fe1356d6d51c245e485b576625e7ec6f44c42e9a637ed6b0bff5cb6f406b7edee386bfb5a899fa5ae9f24117c4b1fe649286651ece45b3dc2007cb8a163bf0598da48361c55d39a69163fa8fd24cf5f83655d23dca3ad961c62f356208552bb9ed529077096966d670c354e4abc9804f1746c08ca237327ffffffffffffffff
-    server.N = client.N
-    client.g, server.g = 2, 2
-    client.k, server.k = 3, 3
-    client.I = 'ndarj11@freeuni.edu.ge'
-    server.I = client.I
-    client.P = 'dzkonline.net'
-    server.P = client.P
-
-    server.salt = random_integer() 
-    xH = sha256((str(server.salt) + server.P).encode()).digest()
-    x = hash_to_int(xH)
-    server.v = pow(server.g, x, server.N)
-
-    client.a = random.randint(0, client.N) % client.N
-    client.A = pow(client.g, client.a, client.N)
-    server.A = client.A
-
-    server.b = random.randint(0, server.N) % server.N
-    server.B = server.k * server.v + pow(server.g, server.b, server.N)
-    client.B = server.B
-    client.salt = server.salt
-    uH = sha256((str(server.A) + str(server.B)).encode()).digest()
-    u = hash_to_int(uH)
-    server.u = u
-    client.u = u
-    xH = sha256((str(client.salt) + str(client.P)).encode()).digest()
-    client.x = hash_to_int(xH)
-    client.S = pow((client.B - client.k * pow(client.g, client.x, client.N)), client.a + client.u * client.x, client.N)
-    client.K = sha256(str(client.S).encode()).digest()
-
-    server.S = pow(server.A * pow(server.v, server.u, server.N), server.b, server.N)
-    server.K = sha256(str(server.S).encode()).digest()
+    server.receive_A(client.A)
+    client.receive_B(server.B)
+    client.receive_salt(server.salt)
 
     if server.K == client.K:
         print("Accepted")
